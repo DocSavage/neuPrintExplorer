@@ -106,7 +106,9 @@ class Login extends React.Component {
     const { location } = this.props;
     // redirect to current path to reduce friction when logging in.
     const redirectUrl = encodeURIComponent(`${location.pathname}${location.search}`);
-    window.open(`/login?redirect=${redirectUrl}`, '_self');
+    const dataset = new URLSearchParams(location.search).get('dataset');
+    const datasetParam = dataset ? `&dataset=${encodeURIComponent(dataset)}` : '';
+    window.open(`/login?redirect=${redirectUrl}${datasetParam}`, '_self');
   };
 
   logout = () => {

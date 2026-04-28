@@ -119,19 +119,30 @@ class TopBar extends React.Component {
       setQueryString({ plugins: [] });
     };
 
+    const nextUrl = new URL(window.location.href);
+    nextUrl.searchParams.set('dataset', selectedDataSet.value);
+
     // Check dataset access (including TOS) before switching
-    fetch(`/dataset-access?dataset=${encodeURIComponent(selectedDataSet.value)}`, {
+    const datasetAccessUrl = (
+      `/dataset-access?dataset=${encodeURIComponent(selectedDataSet.value)}`
+      + `&next=${encodeURIComponent(nextUrl.toString())}`
+    );
+
+    fetch(datasetAccessUrl, {
       credentials: 'include'
     })
       .then(result => result.json())
       .then(data => {
         if (data.tos_required) {
-          // Redirect through login with dataset param to trigger TOS acceptance
+          if (data.tos_url) {
+            window.open(data.tos_url, '_self');
+            return;
+          }
           const redirectUrl = encodeURIComponent(`/?dataset=${selectedDataSet.value}`);
           window.open(`/login?redirect=${redirectUrl}&dataset=${selectedDataSet.value}`, '_self');
           return;
         }
-        if (data.message && !data.access) {
+        if (data.message && data.access === false) {
           // No access at all
           alert(data.message);
           return;
